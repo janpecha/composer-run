@@ -148,10 +148,14 @@
 		{
 			$command = $this->processCommand($arg);
 
-			$exitCode = 0;
-			passthru($command, $exitCode);
+			$descriptors = [
+				['file', '/dev/tty', 'r'],
+				['file', '/dev/tty', 'w'],
+				['file', '/dev/tty', 'w'],
+			];
 
-			return $exitCode;
+			$process = proc_open($command, $descriptors, $pipes);
+			return proc_close($process);
 		}
 
 
