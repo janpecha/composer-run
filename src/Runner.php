@@ -75,6 +75,7 @@
 			$currentDate = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
 			if ($lastUpdated !== NULL) {
+				echo "Last updated: ", $lastUpdated->format('Y-m-d H:i:s'), "\n";
 				$lastUpdatedDiff = (int) $lastUpdated->diff($currentDate)->format('%a');
 				$installPackages = $lastUpdatedDiff > 1;
 			}
