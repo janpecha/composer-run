@@ -45,11 +45,10 @@
 			echo "[PACKAGES]\n";
 			echo '- ' . implode("\n- ", $phpstanPackages), "\n";
 			$phpstanBinary = $this->initInstallation($phpstanPackages);
-			$exitCode = 0;
 
 			echo "[RUN PHPSTAN]\n";
 			array_unshift($args, $phpstanBinary);
-			$this->passthruCommand(...$args);
+			$exitCode = $this->passthruCommand(...$args);
 
 			return $exitCode;
 		}
