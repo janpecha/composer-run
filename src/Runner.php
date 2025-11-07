@@ -23,39 +23,117 @@
 
 
 		/**
-		 * @param  string[] $args
+		 * @param array<string> $args
 		 */
 		public function run(
 			string $cwd,
 			array $args
 		): int
 		{
-			$phpstanPackages = $this->fetchExtensions($cwd . '/composer.json');
+			$args = array_values($args);
 
-			if (count($phpstanPackages) > 0) {
-				$phpstanPackages[] = 'phpstan/extension-installer';
+			if (count($args) === 0) {
+				return $this->commandHelp();
 			}
 
-			$phpstanPackages[] = 'phpstan/phpstan';
+			if ($args[0] === 'help') {
+				return $this->commandHelp();
 
-			$phpstanPackages = array_unique($phpstanPackages);
-			sort($phpstanPackages, SORT_STRING);
+			} elseif ($args[0] === 'phpstan') {
+				$args = array_merge(
+					[
+						'phpstan/extension-installer',
+						'phpstan/phpstan',
+						'extra:phpstan-extensions',
+						'phpstan',
+					],
+					array_slice($args, 1)
+				);
+			}
 
-			echo "[PACKAGES]\n";
-			echo '- ' . implode("\n- ", $phpstanPackages), "\n";
-			$phpstanBinary = $this->initInstallation($phpstanPackages);
-
-			echo "[RUN PHPSTAN]\n";
-			array_unshift($args, $phpstanBinary);
-			$exitCode = $this->passthruCommand(...$args);
-
-			return $exitCode;
+			return $this->commandRun($cwd, $args);
 		}
 
 
-		private function initInstallation(array $phpstanPackages)
+		private function commandHelp(): int
 		{
-			$key = md5(serialize($phpstanPackages));
+			echo "Composer-Run\n\n";
+			echo "Run commands from Composer packages locally, without global installation.\n\n";
+			echo "Usage:\n";
+
+			echo "\tcomposer-run <command>\n";
+			echo "\tcomposer-run <package> <binary-name> <arguments>\n\n";
+
+			return 0;
+		}
+
+
+		private function commandRun(
+			string $cwd,
+			array $args
+		): int
+		{
+			$packages = [];
+			$binaryName = NULL;
+			$binaryArgs = [];
+			$state = 'packages';
+			$composerFile = $cwd . '/composer.json';
+
+			foreach ($args as $arg) {
+				if ($arg === '') {
+					continue;
+				}
+
+				if ($state === 'packages') {
+					if (str_starts_with($arg, 'extra:') && strlen($arg) > 6) {
+						$packages = array_merge(
+							$packages,
+							$this->fetchExtensions($composerFile, substr($arg, 6))
+						);
+
+					} elseif (substr_count($arg, '/') === 1) {
+						$packages[] = $arg;
+
+					} else {
+						$state = 'binaryName';
+					}
+				}
+
+				if ($state === 'binaryName') {
+					$binaryName = $arg;
+					$state = 'binaryArgs';
+
+				} elseif ($state === 'binaryArgs') {
+					$binaryArgs[] = $arg;
+				}
+			}
+
+			$packages = array_unique($packages);
+			sort($packages, SORT_STRING);
+
+			if (count($packages) === 0) {
+				echo "[ERROR] No packages specified\n";
+				return 1;
+			}
+
+			if ($binaryName === NULL || $binaryName === '') {
+				echo "[ERROR] No binary name specified\n";
+				return 1;
+			}
+
+			echo "[PACKAGES]\n";
+			echo '- ' . implode("\n- ", $packages), "\n";
+			$binaryFile = $this->initInstallation($packages, $binaryName);
+
+			echo "[RUN]\n";
+			array_unshift($binaryArgs, $binaryFile);
+			return $this->passthruCommand(...$binaryArgs);
+		}
+
+
+		private function initInstallation(array $packages, string $binaryName)
+		{
+			$key = md5(serialize($packages));
 			$installationDirectory = $this->tempDirectory . '/' . $key;
 			@mkdir($installationDirectory, 0777, TRUE);
 			$lastUpdated = NULL;
@@ -100,25 +178,29 @@
 					'--no-interaction',
 					'--working-dir',
 					$installationDirectory,
-					...$phpstanPackages
+					...$packages
 				);
 
 				if ($exitCode !== 0) {
-					throw new \RuntimeException('Installation of PHPStan packages failed.');
+					throw new \RuntimeException('Installation of packages failed.');
 				}
 
 				file_put_contents($lastUpdatedFile, $currentDate->format('Y-m-d H:i:s') . "\n");
 			}
 
-			return $installationDirectory . '/vendor/bin/phpstan';
+			return $installationDirectory . '/vendor/bin/' . $binaryName;
 		}
 
 
 		/**
 		 * @return string[]
 		 */
-		private function fetchExtensions(string $composerFile): array
+		private function fetchExtensions(string $composerFile, string $sectionName): array
 		{
+			if (!is_file($composerFile)) {
+				return [];
+			}
+
 			$result = $this->execCommand(
 				$this->composerExecutable,
 				'config',
@@ -126,7 +208,7 @@
 				'--json',
 				'-f',
 				$composerFile,
-				'extra.phpstan-extensions',
+				'extra.' . $sectionName,
 			);
 
 			if ($result['exitCode'] === 0 && $result['output'] !== '') {
