@@ -119,7 +119,6 @@
 		 */
 		private function fetchExtensions(string $composerFile): array
 		{
-			$extensions = [];
 			$result = $this->execCommand(
 				$this->composerExecutable,
 				'config',
