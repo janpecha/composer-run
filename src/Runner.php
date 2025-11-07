@@ -68,6 +68,9 @@
 		}
 
 
+		/**
+		 * @param  list<string> $args
+		 */
 		private function commandRun(
 			string $cwd,
 			array $args
@@ -116,7 +119,7 @@
 				return 1;
 			}
 
-			if ($binaryName === NULL || $binaryName === '') {
+			if ($binaryName === NULL) {
 				echo "[ERROR] No binary name specified\n";
 				return 1;
 			}
@@ -131,7 +134,12 @@
 		}
 
 
-		private function initInstallation(array $packages, string $binaryName)
+		/**
+		 * @param  list<non-empty-string> $packages
+		 * @param  non-empty-string $binaryName
+		 * @return non-empty-string
+		 */
+		private function initInstallation(array $packages, string $binaryName): string
 		{
 			$key = md5(serialize($packages));
 			$installationDirectory = $this->tempDirectory . '/' . $key;
@@ -142,9 +150,13 @@
 			if (is_file($lastUpdatedFile)) {
 				$lastUpdated = \DateTimeImmutable::createFromFormat(
 					'Y-m-d H:i:s',
-					trim(file_get_contents($lastUpdatedFile)),
+					trim((string) file_get_contents($lastUpdatedFile)),
 					new \DateTimeZone('UTC')
 				);
+
+				if ($lastUpdated === FALSE) {
+					$lastUpdated = NULL;
+				}
 			}
 
 			$installPackages = TRUE;
@@ -193,7 +205,7 @@
 
 
 		/**
-		 * @return string[]
+		 * @return non-empty-string[]
 		 */
 		private function fetchExtensions(string $composerFile, string $sectionName): array
 		{
@@ -212,7 +224,20 @@
 			);
 
 			if ($result['exitCode'] === 0 && $result['output'] !== '') {
-				return json_decode($result['output'], TRUE);
+				$packages = [];
+				$data = json_decode($result['output'], TRUE);
+
+				if (!is_array($data)) {
+					$data = [];
+				}
+
+				foreach ($data as $row) {
+					if (is_string($row) && $row !== '') {
+						$packages[] = $row;
+					}
+				}
+
+				return $packages;
 			}
 
 			return [];
@@ -235,6 +260,11 @@
 			];
 
 			$process = proc_open($command, $descriptors, $pipes);
+
+			if ($process === FALSE) {
+				return 99;
+			}
+
 			return proc_close($process);
 		}
 
@@ -260,6 +290,9 @@
 		}
 
 
+		/**
+		 * @param  array<string> $args
+		 */
 		private function processCommand(array $args): string
 		{
 			$res = [];
