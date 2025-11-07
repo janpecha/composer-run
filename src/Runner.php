@@ -167,7 +167,7 @@
 			...$arg
 		): array
 		{
-			$command = $this->processCommand($arg) . ' 2>&1';
+			$command = $this->processCommand($arg) . ' 2>/dev/null';
 
 			$exitCode = 0;
 			$output = [];
