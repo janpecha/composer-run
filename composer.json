@@ -1,0 +1,21 @@
+{
+	"name": "janpecha/composer-run",
+	"type": "library",
+	"description": "Run commands from Composer packages locally, without global installation.",
+	"license": "BSD-3-Clause",
+	"authors": [
+		{
+			"name": "Jan Pecha",
+			"homepage": "https://www.janpecha.cz/"
+		}
+	],
+	"funding": [
+		{"type": "other", "url": "https://www.janpecha.cz/donate/"}
+	],
+	"require": {
+		"php": "8.4.*"
+	},
+	"autoload": {
+		"classmap": ["src/"]
+	}
+}
