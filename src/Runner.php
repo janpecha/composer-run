@@ -1,6 +1,6 @@
 <?php
 
-	namespace JP\PHPStanRunner;
+	namespace JP\ComposerRun;
 
 
 	class Runner

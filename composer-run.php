@@ -16,7 +16,7 @@ $config = array_merge([
 $args = $_SERVER['argv'];
 array_shift($args);
 
-exit((new JP\PHPStanRunner\Runner(
+exit((new JP\ComposerRun\Runner(
 	$config['composerExecutable'],
 	$config['tempDirectory']
 ))->run(getcwd(), $args));
