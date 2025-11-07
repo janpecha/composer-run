@@ -81,6 +81,28 @@ composer-run phpstan <arguments>
 Installs `phpstan/phpstan`, `phpstan/extension-installer` and `extra:phpstan-extensions`, runs `vendor/bin/phpstan <arguments>` binary.
 
 
+## Commands
+
+### help
+
+```
+composer-run help
+```
+
+Prints help.
+
+
+### clean
+
+```
+composer-run clean <days>
+```
+
+Remove installations older than `<days>`.
+
+Default number of days is *30*.
+
+
 ## Configuration
 
 Create configuration file `.config.php` in Composer-Run directory.

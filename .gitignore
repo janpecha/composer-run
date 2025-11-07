@@ -1,2 +1,4 @@
 /.tmp
 /.config.php
+/composer.lock
+/vendor

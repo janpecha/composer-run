@@ -13,7 +13,8 @@
 		{"type": "other", "url": "https://www.janpecha.cz/donate/"}
 	],
 	"require": {
-		"php": "8.4.*"
+		"php": "8.4.*",
+		"nette/utils": "^4.0"
 	},
 	"autoload": {
 		"classmap": ["src/"]

@@ -2,6 +2,8 @@
 
 	namespace JP\ComposerRun;
 
+	use Nette\Utils\FileSystem;
+
 
 	class Runner
 	{
@@ -39,6 +41,9 @@
 			if ($args[0] === 'help') {
 				return $this->commandHelp();
 
+			} elseif ($args[0] === 'clean') {
+				return $this->commandClean(array_slice($args, 1));
+
 			} elseif ($args[0] === 'phpstan') {
 				$args = array_merge(
 					[
@@ -64,6 +69,34 @@
 			echo "\tcomposer-run <command>\n";
 			echo "\tcomposer-run <package> <binary-name> <arguments>\n\n";
 
+			return 0;
+		}
+
+
+		/**
+		 * @param  list<string> $args
+		 */
+		private function commandClean(
+			array $args
+		): int
+		{
+			$days = 30;
+
+			foreach ($args as $arg) {
+				if ($arg !== '' && \Nette\Utils\Validators::isNumericInt($arg)) {
+					$arg = (int) $arg;
+
+					if ($arg > 0) {
+						$days = $arg;
+						break;
+					}
+				}
+
+				echo "[ERROR] Invalid number of days.\n";
+				return 1;
+			}
+
+			$this->cleanInstallations(days: $days);
 			return 0;
 		}
 
@@ -127,6 +160,8 @@
 			echo "[PACKAGES]\n";
 			echo '- ' . implode("\n- ", $packages), "\n";
 			$binaryFile = $this->initInstallation($packages, $binaryName);
+
+			$this->cleanInstallations(days: 30);
 
 			echo "[RUN]\n";
 			array_unshift($binaryArgs, $binaryFile);
@@ -201,6 +236,57 @@
 			}
 
 			return $installationDirectory . '/vendor/bin/' . $binaryName;
+		}
+
+
+		private function cleanInstallations(int $days): void
+		{
+			$items = scandir($this->tempDirectory);
+
+			if (!is_array($items)) {
+				return;
+			}
+
+			$currentDate = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+			$toDelete = [];
+
+			foreach ($items as $item) {
+				if ($item === '.' || $item === '..') {
+					continue;
+				}
+
+				$lastUpdated = NULL;
+				$lastUpdatedFile = $this->tempDirectory . '/' . $item . '/.last-updated';
+
+				if (is_file($lastUpdatedFile)) {
+					$lastUpdated = \DateTimeImmutable::createFromFormat(
+						'Y-m-d H:i:s',
+						trim((string) file_get_contents($lastUpdatedFile)),
+						new \DateTimeZone('UTC')
+					);
+
+					if ($lastUpdated === FALSE) {
+						$lastUpdated = NULL;
+					}
+				}
+
+				if ($lastUpdated !== NULL) {
+					$lastUpdatedDiff = (int) $lastUpdated->diff($currentDate)->format('%a');
+
+					if ($lastUpdatedDiff >= $days) {
+						$toDelete[$item] = $lastUpdated;
+					}
+				}
+			}
+
+			if (count($toDelete) > 0) {
+				echo "[CLEAN OLD INSTALLATIONS]\n";
+
+				foreach ($toDelete as $item => $lastUpdated) {
+					echo '- ', $item, ' [', $lastUpdated->format('Y-m-d H:i:s'), " UTC]\n";
+					FileSystem::delete($this->tempDirectory . '/' . $item);
+				}
+			}
 		}
 
 
