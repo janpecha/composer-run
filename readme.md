@@ -42,7 +42,7 @@ Installs `phpstan/phpstan` and runs `vendor/bin/phpstan analyse`.
 ### Run binary from multiple packages
 
 ```
-composer-run phpstan/phpstan+phpstan/extension-installer phpstan analyse
+composer-run phpstan/phpstan phpstan/extension-installer phpstan analyse
 ```
 
 Installs `phpstan/phpstan` and `phpstan/extension-installer` and runs `vendor/bin/phpstan analyse`.
@@ -64,7 +64,7 @@ Installs `phpstan/phpstan` and `phpstan/extension-installer` and runs `vendor/bi
 ```
 
 ```
-composer-run phpstan/phpstan+phpstan/extension-installer+extra:phpstan-extensions -- phpstan analyse
+composer-run phpstan/phpstan phpstan/extension-installer extra:phpstan-extensions -- phpstan analyse
 ```
 
 Installs `phpstan/phpstan`, `phpstan/extension-installer` and all packages from `extra.phpstan-extension` section, runs `vendor/bin/phpstan analyse` binary.
