@@ -147,9 +147,9 @@
 			$command = $this->processCommand($arg);
 
 			$descriptors = [
-				['file', '/dev/tty', 'r'],
-				['file', '/dev/tty', 'w'],
-				['file', '/dev/tty', 'w'],
+				STDIN,
+				STDOUT,
+				STDERR,
 			];
 
 			$process = proc_open($command, $descriptors, $pipes);
