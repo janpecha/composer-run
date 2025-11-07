@@ -23,6 +23,13 @@ Create symlink to `composer-run` in `~/.local/bin` or add directory of Composer-
 Composer-Run requires PHP 8.4 or later.
 
 
+## Manual installation
+
+- clone repository
+- run `composer install`
+- create symlink to file `composer-run` in `~./local/bin`
+
+
 ## Usage
 
 ```
