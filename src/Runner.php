@@ -30,7 +30,6 @@
 			array $args
 		): int
 		{
-			$cwd = getcwd();
 			$phpstanPackages = $this->fetchExtensions($cwd . '/composer.json');
 
 			if (count($phpstanPackages) > 0) {
