@@ -16,4 +16,4 @@ jobs:
     static-analysis:
         uses: janpecha/actions/.github/workflows/phpstan.yml@master
         with:
-            phpVersions: '["8.4"]'
+            phpVersions: '["8.4", "8.5"]'
